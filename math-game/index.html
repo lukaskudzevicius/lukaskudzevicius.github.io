@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calculation game</title>
+    <link rel="stylesheet" href="game.css?version=4" />
+  </head>
+  <body>
+    <div class="back" onclick="redirectTo('main')">< Back to project list</div>
+    <div class="info">About the project</div>
+    <div onclick="skipTask()" class="skip-task hidden">Skip to the next task ></div>
+    <div class="active-game">
+      <div>
+        <span class="task"></span>
+        <div class="inputs">
+          <input
+          class="answer"
+          type="number"
+          placeholder="Enter your result here..."
+          />
+          <button id="submit" class="btn">Check result</button>
+        </div>
+        <div class="score">Your score: <span class="score-count"></span></div>
+        <span class="message"></span>
+      </div>
+    </div>
+    <div class="finish hidden">
+      <span class="finish-message">Hey, you have finished the game! Your score is <span id="final-score"></span>. Your best score so far is <span id="best-score"></span>.</span>
+      <div class="restart" onclick="restartGame();">Do you want to play again?</div>
+    </div>
+    <div class="overlay hidden"></div>
+    <div class="about hidden">
+        <div class="close">&times;</div>
+        <p>
+          <b>Description.</b>
+          Welcome to my first project. This is a simple maths game which gives
+          user a random task from the array and then asks users to input the
+          answer to check if they are correct. Each right answer gives you 1
+          point, while each wrong answer removes 1 point from the counter. You
+          can't go below 0 points. There are 40 tasks saved in array, but only
+          20 are randomly given to the user. Once all of the tasks are
+          completed, you get a 'Game has ended' message and are given an option
+          to restart the game.
+        </p>
+        <p>
+          <b>Problem #1.</b>
+          Find a way to store tasks. First thing that comes my mind is using an array.
+          <pre>
+            <code>
+              const calculations = [2 + 3 + 4, 10 * 2 / 4, 15 - 5 * 10];
+            </code>
+          </pre>
+          However, this way array will save only seperate values
+          <pre>
+            <code>
+              const calculations = [9, 5, -35];
+            </code>
+          </pre>
+          Also I will need to show the task to user, therfore I should save them as strings.
+          <pre>
+            <code>
+              const calculations = ['2 + 3 + 4', '10 * 2 / 4', '15 - 5 * 10'];
+            </code>
+          </pre>
+          This way I am not getting the value of the mathematics, since I am working with strings. After some research I found <i>eval();</i> method which evaluates JavaScript code represented as a string and returns its completion value. <br><b>NB!</b> Everybody is advising from using this method, since it is very unsafe. However, in my case, this function is running on the server side and receives no user input, so it cannot be manipulated.
+          <pre>
+            <code>
+              eval(calculations[i])
+            </code>
+          </pre>
+        </p>
+        <p>
+          <b>Problem #2</b>
+          Find a way to generate a random task from array and push it to the web UI.
+          <pre>
+            <code>
+              const taskID = Math.floor(Math.random() * calculations.length);
+            </code>
+          </pre>
+          Using <i>Math.floor()</i> for roundup and <i>Math.random()</i> for random number I can generate a random task ID from the calculations array. 
+          <pre>
+            <code>
+              document.querySelector('.task').textContent = calculations[taskID]
+            </code>
+          </pre>
+          Now I run into a problem. If the task has more complicated mathematical operations like exponentiations and square roots, the task visible to user might be hardly recognisable since some operations in JavaScript are written in specific ways. I decide to use objects with their own properties inside the array.
+          <pre>
+            <code>
+              calculations = [
+                {
+                  display: '-10² ÷ 5 ÷ 5 - 4',
+                  expression: (-10) ** 2 / 5 / 5 - 4,
+                },
+              ];
+            </code>
+          </pre>
+          This way I have <i>display</i> property that I can send to UI and <i>expression</i> property that can be used in code. Now I can create a function that will randomise the task and push it to UI everytime I want to run this function.
+          <pre>
+            <code>
+              function randomiseTask() {
+                const taskID = Math.floor(Math.random() * calculations.length);
+                document.querySelector('.task').textContent = calculations[taskID].display;
+                return calculations[taskID];
+              }
+            </code>
+          </pre>
+        </p>
+        <p>
+          <b>Problem #3</b>
+          Capturing user input and defining logic on what happens after.
+          <pre>
+            <code>
+              document.querySelector('#submit').addEventListener('click', function () {
+                const answer = Number(document.querySelector('.answer').value);
+            </code>
+          </pre>
+          The code waits for the click on button and converts the entered value into a number.<br><br>Now let's handle the logic if no input is sent to server.
+          <pre>
+            <code>
+              else if (!answer) {
+                displayMessage(`You have to type something in!`);
+                document.querySelector('.message').style = 'color: red;';
+                setTimeout(function () {
+                  document.querySelector('.message').style = 'display: none;';
+                }, 2000);
+              }
+            </code>
+          </pre>
+          It gives you a message in red that dissapears in 2 seconds.<br><br>
+          No let's handel the logic if the answer is not corret.
+          <pre>
+            <code>
+              else {
+                displayMessage(`Your answer is not correct!`);
+                if (score > 0) {
+                  score--;
+                }
+                document.querySelector('.score-count').textContent = score;
+                document.querySelector('.message').style = 'color: red;';
+                setTimeout(function () {
+                  document.querySelector('.message').style =
+                    'color: black; transition: 0.15s ease';
+                }, 1000);
+              }
+            </code>
+          </pre>
+          You receive a message. If the score higher then 0, it will take 1 point away from your score and will update it in UI.<br><br>
+          Not let's handle the logic if the answer is correct.
+          <pre>
+            <code>
+              if (answer === calculation.expression) {
+                score++;
+                taskCount++;
+                document.querySelector('.score-count').textContent = score;
+                displayMessage(`You are correct`);
+                document.querySelector('.message').style.display = 'flex';
+                document.querySelector('body').style =
+                  'background-color: #60b347; transition: 0.15s ease';
+                document.querySelector('.task').style =
+                  'background-color: #60b347; transition: 0.15s ease';
+                const taskID = calculations.indexOf(calculation);
+                calculations.splice(taskID, 1);
+                document.querySelector('#submit').disabled = true;
+                document.querySelector('.answer').disabled = true;
+                if (taskCount === 20) {
+                  document.querySelector('body').style =
+                    'background-color: #ccc; transition: 0.15s ease';
+                  document.querySelector('.active-game').classList.add('hidden');
+                  document.querySelector('.finish').classList.remove('hidden');
+                  document.querySelector('#final-score').textContent = score;
+                  if (bestScore < score) {
+                    bestScore = score;
+                  }
+                  document.querySelector('#best-score').textContent = bestScore;
+                  console.log(bestScore);
+                } else {
+                  setTimeout(function () {
+                    calculation = randomiseTask();
+                    document.querySelector('body').style =
+                      'background-color: #ccc; transition: 0.15s ease';
+                    document.querySelector('.task').style =
+                      'background-color: #777777; transition: 0.15s ease';
+                    displayMessage('');
+                    document.querySelector('#submit').disabled = false;
+                    document.querySelector('.answer').disabled = false;
+                    document.querySelector('.answer').value = '';
+                  }, 2000);
+                }
+            </code>
+          </pre>
+          If the answer is correct, script adds one point to the score, also counts how many tasks were given to user. Then given task is removed from the calculations array. If the task count reaches 20, then 'game over' screen is shown with final result and the best score so far. Also, if new score is higher than best score, it updates itself. If task count is below 20, script gives another random task from the array.
+        </p>
+        <p>
+          <b>Problem #4</b>
+          Restarting the game without refreshing the browser.<br><br>
+          For this event I create a <i>restartGame();</i> function.
+          <pre>
+            <code>
+              function restartGame() {
+                calculations = calculations2;
+                calculation = randomiseTask();
+                document.querySelector('.active-game').classList.remove('hidden');
+                document.querySelector('.finish').classList.add('hidden');
+                document.querySelector('body').style =
+                  'background-color: #ccc; transition: 0.15s ease';
+                document.querySelector('.task').style =
+                  'background-color: #777777; transition: 0.15s ease';
+                document.querySelector('.answer').value = '';
+                document.querySelector('#submit').disabled = false;
+                document.querySelector('.answer').disabled = false;
+                score = 0;
+                document.querySelector('.score-count').textContent = score;
+                taskCount = 0;
+                displayMessage('');
+              }
+            </code>
+          </pre>
+          Since everytime the task is answered correctly it is removed from the array, I have to recreate original array. To do so, I create a copy of the original array and push it to the original array. Then new task is generated randomly, all html and styling reset to initial state. Task count and score are set to 0 values and we are good to go again.
+        </p>
+        <p>
+          <b>Problem #5</b>
+          Since this is my first time writing this kind of code, I am aware that it is definetaly not DRY (don't repeat yourself) method friendly. Therefore my task is to try to clean up the code. Since I am using loads of <i>document.querrySelector</i> functions, I can create variables that would make my life easier.
+          <pre>
+            <code>
+              const answerInput = document.querySelector('.answer');
+              const btnSubmit = document.querySelector('#submit');
+              const scoreCount = document.querySelector('.score-count');
+              const message = document.querySelector('.message');
+              const bodyStyle = document.querySelector('body');
+              const task = document.querySelector('.task');
+              const activeGame = document.querySelector('.active-game');
+              const finish = document.querySelector('.finish');
+            </code>
+          </pre>
+        </p>
+        <p>
+          <b>And that's it folks!</b> Even though it is a very primitive game (if you could even call it a game), it was really intriguing to write code and learn new things. What I have learned the most is to be more organised in advance, have all variables set, so I don't have to write so much and get confused. Also, trying to create functions and reuse them to make everything more bug proof and understandable.
+        </p>
+        <p>
+          <b>Patch notes v1.1</b> Added functionality to skip the task if you have answered wrong once. <i>skipTask();</i> function keeps count on <i>taskCount</i> and if it reaches a required task count, it triggers <i>finishGame();</i> function.
+          <pre>
+            <code>
+              function skipTask() {
+                taskCount++;
+                if (taskCount === tasksToFinish) {
+                  finishGame();
+                }
+                calculation = randomiseTask();
+                document.querySelector('.skip-task').classList.add('hidden');
+                answerInput.value = '';
+                displayMessage('');
+              };
+
+              function finishGame() {
+                setTimeout(function () {
+                  bodyStyle.style = 'background-color: #ccc; transition: 0.15s ease';
+                }, 1000);
+                activeGame.classList.add('hidden');
+                finish.classList.remove('hidden');
+                document.querySelector('#final-score').textContent = score;
+                if (bestScore < score) {
+                  bestScore = score;
+                }
+                document.querySelector('#best-score').textContent = bestScore;
+              }
+            </code>
+          </pre>
+        </p>
+    </div>
+    <script src="data.js?version=2"></script>
+    <script src="game.js"></script>
+  </body>
+</html>
