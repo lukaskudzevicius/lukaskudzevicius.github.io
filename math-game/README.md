@@ -20,7 +20,7 @@ It is my first small project while learning vanilla Javascript. It is a simple m
 
 ### Links
 
-- Live Site URL: [Add live site URL here](https://lukaskudzevicius.github.io/math-game/)
+- Live Site URL: [Click on me!](https://lukaskudzevicius.github.io/math-game/)
 
 ## My process
 
