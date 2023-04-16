@@ -22,7 +22,7 @@ function randomiseTask() {
 }
 
 function redirectTo() {
-  location.href = `https://lukaskudzevicius.com/dev`;
+  location.href = `https://github.com/lukaskudzevicius/lukaskudzevicius.github.io`;
 }
 
 let calculation = randomiseTask();
